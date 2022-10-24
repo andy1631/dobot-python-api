@@ -3,11 +3,9 @@ import serial
 from typing import Optional, TypedDict
 from serial.tools import list_ports
 #from multiprocessing import RLock
-from logging import getLogger
+import logging
 
 from .message import *
-
-_log = getLogger(__name__)
 
 #_lock = RLock()
 
@@ -29,21 +27,20 @@ def connect(port: Optional[str] = None) -> serial.Serial | None:
         parity = serial.PARITY_NONE,
         stopbits = serial.STOPBITS_ONE,
     )
-    _log.info("Connecting to dobot on port ", seri.port)
+    logging.info("Connecting to dobot on port ", seri.port)
     if not seri.is_open: seri.open()
     return seri
 
 def disconnect(seri):
-    _log.info("Disconnection dobot")
+    logging.info("Disconnection dobot")
     if seri != None and seri.is_open:
         seri.close()
-        _log.debug("Serial port closed")
+        logging.debug("Serial port closed")
 
 
 def send_message(msg_id: int, ctrl: int, params: bytes, seri: serial.Serial):
     msg = msg_dict(msg_id, ctrl, params)
     frame = get_bytes(msg)
-    print("seding msg " + str(msg))
     seri.write(frame)
 
 def receive_message(seri: serial.Serial) -> dict:
