@@ -4,7 +4,7 @@ from time import sleep
 from typing import Iterable, List, Tuple, Optional
 from serial import Serial
 
-from dobot_python_api.api.message_id import MessageID
+from api.message_id import MessageID
 
 import api
 

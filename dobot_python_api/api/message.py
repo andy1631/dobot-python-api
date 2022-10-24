@@ -2,7 +2,7 @@ import struct
 from functools import reduce
 from typing import TypedDict, Any
 
-from dobot_python_api.api.message_id import MessageID
+from .message_id import MessageID
 
 class Message(TypedDict):
     header: bytes
