@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import IntEnum
 
-class MessageID(Enum):
+class MessageID(IntEnum):
 
     #Device Information
     DEVICE_SN = 0
@@ -34,10 +34,10 @@ class MessageID(Enum):
     JOG_COMMON_PARAMS = 72
 
     #PTP (point to point)
-    PTP_JOINT_PARAMS = 80
-    PTP_COORDINATE_PARAMS = 81
-    PTP_JUMP_PARAMS = 82
-    PTP_COMMON_PARAMS = 83
+    SET_PTP_JOINT_PARAMS = 80
+    SET_PTP_COORDINATE_PARAMS = 81
+    SET_PTP_JUMP_PARAMS = 82
+    SET_PTP_COMMON_PARAMS = 83
     PTP_CMD = 84
 
     #CP (Continuous Path)
@@ -61,7 +61,7 @@ class MessageID(Enum):
     COLOR_SENSOR = 137
     IR_SWITCH = 138
 
-class PTP_MODE(Enum):
+class PTP_MODE(IntEnum):
 
     JUMP_XYZ = 0x00
     MOVJ_XYZ = 0x01

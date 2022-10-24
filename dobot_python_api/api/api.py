@@ -1,9 +1,11 @@
 #import struct
 import serial
-from typing import Optional, TypedDict
+from typing import Optional
 from serial.tools import list_ports
 #from multiprocessing import RLock
 import logging
+
+from dobot_python_api.api.message_id import MessageID
 
 from .message import *
 
@@ -15,7 +17,7 @@ def _get_coms_port() -> str:
     if comports:
         devices = [comport.device for comport in comports]
 
-        return devices[0]
+        return str(devices[0])
     else:
         raise Exception('No device found!')
 
@@ -38,12 +40,12 @@ def disconnect(seri):
         logging.debug("Serial port closed")
 
 
-def send_message(msg_id: int, ctrl: int, params: bytes, seri: serial.Serial):
+def send_message(msg_id: MessageID, ctrl: int, params: bytes, seri: serial.Serial):
     msg = msg_dict(msg_id, ctrl, params)
     frame = get_bytes(msg)
     seri.write(frame)
 
-def receive_message(seri: serial.Serial) -> dict:
+def receive_message(seri: serial.Serial) -> Message:
     b = bytearray(seri.read(3))
     b.extend(seri.read(b[2] + 1))
     return bytes_to_dict(b)
