@@ -40,12 +40,16 @@ def disconnect(seri):
         logging.debug("Serial port closed")
 
 
-def send_message(msg_id: MessageID, ctrl: int, params: bytes, seri: serial.Serial):
+def _send_message(msg_id: MessageID, ctrl: int, params: bytes, seri: serial.Serial):
     msg = msg_dict(msg_id, ctrl, params)
     frame = get_bytes(msg)
     seri.write(frame)
 
-def receive_message(seri: serial.Serial) -> Message:
+def _receive_message(seri: serial.Serial) -> Message:
     b = bytearray(seri.read(3))
     b.extend(seri.read(b[2] + 1))
     return bytes_to_dict(b)
+
+def send_command(msg_id: MessageID, ctrl: int, params: bytes, seri: serial.Serial) -> Message:
+    _send_message(msg_id, ctrl, params, seri)
+    return _receive_message(seri)

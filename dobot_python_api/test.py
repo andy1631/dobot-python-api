@@ -5,18 +5,18 @@ import api
 
 port = input("Enter port:")
 
-seri = dobot.create_connection(port)
+serial = dobot.create_connection(port)
 
-while seri != None and seri.is_open:
+while serial != None and serial.is_open:
     action = input(">> ")
 
     match action:
-        case 'send':
-            api.send_message(138, 0x00, b'\x01\x02\x10', seri)
-        case 'read':
-            print(api.receive_message(seri))
+        case 'get_home':
+            print(dobot.get_home(serial))
+        case 'home':
+            dobot.home(serial)
         case 'exit':
             break;
 
 
-api.disconnect(seri)
+api.disconnect(serial)

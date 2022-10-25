@@ -3,8 +3,8 @@ from enum import IntEnum
 class MessageID(IntEnum):
 
     #Device Information
-    DEVICE_SN = 0
-    DEVICE_NAME = 1
+    SET_GET_DEVICE_SN = 0
+    SET_GET_DEVICE_NAME = 1
 
     #Real-time Pose
     GET_POSE = 10
@@ -14,7 +14,7 @@ class MessageID(IntEnum):
     GET_ALARMS_STATE = 20
     CLEAR_ALL_ALARMS_STATE = 21
     #Homing Function
-    HOME_PARAMS = 30
+    SET_GET_HOME_PARAMS = 30
     HOME_CMD = 31
 
     #Handhold Teaching
@@ -23,21 +23,22 @@ class MessageID(IntEnum):
     GET_HHTTRIG_OUTPUT = 42
 
     #End Effector
-    END_EFFECTOR_PARAMS = 60
+    SET_GET_END_EFFECTOR_PARAMS = 60
     END_EFFECTOR_LAZER = 61
     END_EFFECTOR_SUCTION_CUP = 62
     END_EFFECTOR_GRIPPER = 63
 
     #JOG (jogging?)
-    JOG_JOINT_PARAMS = 70
-    JOG_COORDINATE_PARAMS = 71
-    JOG_COMMON_PARAMS = 72
+    SET_GET_JOG_JOINT_PARAMS = 70
+    SET_GET_JOG_COORDINATE_PARAMS = 71
+    SET_GET_JOG_COMMON_PARAMS = 72
+    JOG_CMD = 73
 
     #PTP (point to point)
-    SET_PTP_JOINT_PARAMS = 80
-    SET_PTP_COORDINATE_PARAMS = 81
-    SET_PTP_JUMP_PARAMS = 82
-    SET_PTP_COMMON_PARAMS = 83
+    SET_GET_PTP_JOINT_PARAMS = 80
+    SET_GET_PTP_COORDINATE_PARAMS = 81
+    SET_GET_PTP_JUMP_PARAMS = 82
+    SET_GET_PTP_COMMON_PARAMS = 83
     PTP_CMD = 84
 
     #CP (Continuous Path)
