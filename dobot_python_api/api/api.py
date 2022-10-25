@@ -46,7 +46,15 @@ def _send_message(msg_id: MessageID, ctrl: int, params: bytes, seri: serial.Seri
     seri.write(frame)
 
 def _receive_message(seri: serial.Serial) -> Message:
-    b = bytearray(seri.read(3))
+
+    h1 = b''
+    h2 = seri.read(1)
+
+    while h1 + h2 != b'\xaa\xaa':
+        h1 = h2
+        h2 = seri.read(1)
+
+    b = bytearray(b'\xaa\xaa' + seri.read(1))
     b.extend(seri.read(b[2] + 1))
     return bytes_to_dict(b)
 

@@ -2,14 +2,13 @@ import builtins
 from functools import reduce
 import struct
 from time import sleep
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 from serial import Serial
 
 import dobot_python_api.api as api
 
-from dobot_python_api.api import MessageID, CTRL, JOG_CMD, JOG_MODE
+from dobot_python_api.api.enums import *
 
-from dobot_python_api.api.message_id import PTP_MODE
 
 vector4 = tuple[float, float, float, float]
 
@@ -18,22 +17,25 @@ def create_connection(port: Optional[str] = None) -> Serial | None:
     print("connected")
     if seri != None and seri.is_open:
 
-        _queued_cmd_start_exec(seri)
-        _queued_cmd_clear(seri)
+        queued_cmd_start_exec(seri)
+        queued_cmd_clear(seri)
         set_ptp_joint_params(seri, (200, 200, 200, 200), (200, 200, 200, 200))
         set_ptp_coordinate_params(seri, 200, 200, 200, 200)
         set_ptp_jump_params(seri, 10, 200)
         set_ptp_common_params(seri, 100, 100)
         return seri
 
-def _pack(params: tuple | list | bytes) -> bytes: #move to message?
+def _pack(params: tuple | list | bytes, f: Optional[str] = None) -> bytes: #move to message?
     if type(params) == bytes: return bytes(params)
     t: str
-    match type(params[0]):
-        case builtins.int:
-            t = 'i'
-        case builtins.float:
-            t = 'f'
+    if f != None:
+        t = f
+    else:
+        match type(params[0]):
+            case builtins.int:
+                t = 'i'
+            case builtins.float:
+                t = 'f'
     return reduce(lambda x, y: x + struct.pack(t, y), params, b'')
 
 def _unpack(t: str, params: bytes): #move to message?
@@ -105,16 +107,42 @@ def get_end_effector_params(serial) -> tuple[float, float, float]:
     )
     return _unpack('f', res['params'])
 
-def set_gripper(serial, enable: bool, queued: bool = True) -> int | None:
-    res = api.send_command(MessageID.END_EFFECTOR_GRIPPER,
+def set_laser(serial, enable: bool, queued: bool = True) -> int | None:
+    res = api.send_command(MessageID.SET_GET_END_EFFECTOR_LASER,
                            CTRL.SET_QUEUED if queued else CTRL.SET,
-                           b'\x01' + (b'\x01' if enable else b'\x00'),
+                           b'\x01' + struct.pack('B', enable),
+                           serial
+                           )
+    return _unpack('Q', res['params'])[0] if res != None else None
+
+def get_suction_cup(serial) -> tuple[bool, bool]:
+    res = api.send_command(MessageID.SET_GET_END_EFFECTOR_SUCTION_CUP, CTRL.GET, b'', serial)
+    return _unpack('?', res['params'])
+
+def set_suction_cup(serial, enable: bool, queued: bool = True) -> int | None:
+    res = api.send_command(MessageID.SET_GET_END_EFFECTOR_SUCTION_CUP,
+                           CTRL.SET_QUEUED if queued else CTRL.SET,
+                           b'\x01' + struct.pack('B', enable),
+                           serial
+                           )
+    return _unpack('Q', res['params'])[0] if res != None else None
+
+def get_laser(serial) -> tuple[bool, bool]:
+    res = api.send_command(MessageID.SET_GET_END_EFFECTOR_LASER, CTRL.GET, b'', serial)
+    return _unpack('?', res['params'])
+
+
+
+def set_gripper(serial, enable: bool, queued: bool = True) -> int | None:
+    res = api.send_command(MessageID.SET_GET_END_EFFECTOR_GRIPPER,
+                           CTRL.SET_QUEUED if queued else CTRL.SET,
+                           b'\x01' + struct.pack('B', enable),
                            serial
                            )
     return _unpack('Q', res['params'])[0] if res != None else None
 
 def get_gripper(serial) -> tuple[bool, bool]:
-    res = api.send_command(MessageID.END_EFFECTOR_GRIPPER, CTRL.GET, b'', serial)
+    res = api.send_command(MessageID.SET_GET_END_EFFECTOR_GRIPPER, CTRL.GET, b'', serial)
     return _unpack('?', res['params'])
 
 def set_jog_joint_params(serial, velocity: vector4, acceleration: vector4, queued: bool = True) -> int | None:
@@ -274,17 +302,89 @@ def move(serial, destination: vector4, mode: PTP_MODE = PTP_MODE.MOVJ_XYZ, queue
     res = api.send_command(
         MessageID.PTP_CMD,
         CTRL.SET_QUEUED if queued else CTRL.SET,
-        _pack(struct.pack('B', mode) + _pack(destination)),
+        struct.pack('B', mode) + _pack((destination,)),
         serial
     )
     return _unpack('Q', res['params'])[0] if res != None else None
 
+def _set_emotor(serial, speed: float, interface: Literal[0, 1] = 0, enabled: bool = True, queued: bool = True) -> int | None:
+    res = api.send_command(
+       MessageID.SET_EMOTOR,
+       CTRL.SET_QUEUED if queued else CTRL.SET,
+       struct.pack('B', interface) + struct.pack('B', enabled) + struct.pack('f', speed),
+       serial
+    )
+    return _unpack('Q', res['params'])[0] if res != None else None
 
+def start_belt(serial: Serial, speed: float, interface: Literal[0, 1] = 0, queued: bool = True) -> int | None:
+    #speed claculation? TODO
+    actual_speed = 19800*speed
+    return _set_emotor(serial, actual_speed, interface, queued)
 
+def stop_belt(serial: Serial, interface: Literal[0, 1] = 0, queued: bool = True) -> int | None:
+    return _set_emotor(serial, 0, interface, queued)
 
-def _queued_cmd_start_exec(seri: Serial):  #-> api.Message:
-    api.send_command(MessageID.SET_QUEUED_CMD_START_EXEC, CTRL.SET, b'', seri)
-    #return _unpack('f', api.receive_message(seri)['params'])
+def set_color_sensor(serial: Serial, enable: bool, port: SensorPort, version: Literal[0, 1] = 1, queued: bool = True ):
+    res = api.send_command(
+        MessageID.SET_GET_COLOR_SENSOR,
+        CTRL.SET_QUEUED if queued else CTRL.SET,
+        _pack((enable, port, version), 'B'),
+        serial
+    )
+    return _unpack('Q', res['params'])[0] if res != None else None
 
-def _queued_cmd_clear(seri: Serial):
-    api.send_command(MessageID.SET_QUEUED_CMD_CLEAR, CTRL.SET, b'', seri)
+def get_color(serial: Serial) -> tuple[int, int, int]:
+    res = api.send_command(
+        MessageID.SET_GET_COLOR_SENSOR,
+        CTRL.GET,
+        b'',
+        serial
+    )
+    return _unpack('B', res['params'])
+
+def set_ir_switch(serial: Serial, enable: bool, port: SensorPort, version: Literal[0, 1] = 1, queued: bool = True ) -> int | None:
+    res = api.send_command(
+        MessageID.SET_GET_IR_SWITCH,
+        CTRL.SET_QUEUED if queued else CTRL.SET,
+        _pack((enable, port, version), 'B'),
+        serial
+    )
+    return _unpack('Q', res['params'])[0] if res != None else None
+
+def get_ir(serial: Serial) -> bool:
+    res = api.send_command(
+        MessageID.SET_GET_IR_SWITCH,
+        CTRL.GET,
+        b'',
+        serial
+    )
+    return struct.unpack('?', res['params'])[0]
+
+def queued_cmd_start_exec(serial: Serial):  #-> api.Message:
+    api.send_command(MessageID.SET_QUEUED_CMD_START_EXEC, CTRL.SET, b'', serial)
+
+def queued_cmd_stop_exec(serial: Serial):
+    api.send_command(MessageID.SET_QUEUED_CMD_STOP_EXEC, CTRL.SET, b'', serial)
+
+def queued_cmd_clear(serial: Serial):
+    api.send_command(MessageID.SET_QUEUED_CMD_CLEAR, CTRL.SET, b'', serial)
+
+def queued_cmd_start_download(serial: Serial, total_loop: int, line_per_loop: int):
+    api.send_command(
+        MessageID.SET_QUEUED_CMD_START_DOWNLOAD,
+        CTRL.SET,
+        _pack(('I', total_loop, line_per_loop)),
+        serial
+    )
+
+def queued_cmd_stop_download(serial: Serial):  #-> api.Message:
+    api.send_command(MessageID.SET_QUEUED_CMD_STOP_DOWNLOAD, CTRL.SET, b'', serial)
+
+def get_queued_cmd_current_index(serial: Serial) -> int:
+    res = api.send_command(
+        MessageID.GET_QUEUED_CMD_CURRENT_INDEX,
+        CTRL.GET,
+        b'',
+        serial
+    )
+    return struct.unpack('Q', res['params'])[0]
