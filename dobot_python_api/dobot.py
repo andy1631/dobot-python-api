@@ -5,9 +5,10 @@ from time import sleep
 from typing import Any, Optional
 from serial import Serial
 
-from api import MessageID, CTRL, JOG_CMD, JOG_MODE
+import dobot_python_api.api as api
 
-import api
+from dobot_python_api.api import MessageID, CTRL, JOG_CMD, JOG_MODE
+
 from dobot_python_api.api.message_id import PTP_MODE
 
 vector4 = tuple[float, float, float, float]
