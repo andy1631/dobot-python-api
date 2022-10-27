@@ -1,8 +1,7 @@
 import builtins
 from functools import reduce
 import struct
-from time import sleep
-from typing import Any, Literal, Optional
+from typing import Literal, Optional
 from serial import Serial
 
 import dobot_python_api.api as api
@@ -80,7 +79,7 @@ def clear_all_alarm_state(serial):
     api.send_command(MessageID.CLEAR_ALL_ALARMS_STATE, CTRL.SET, b'', serial)
 
 def set_home(serial, x, y, z, r, queued: bool = True):
-    api.send_command(MessageID.SET_GET_HOME_PARAMS, CTRL.SET_QUEUED if queued  else CTRL.SET, _pack((x, y, z, r)), serial)
+    api.send_command(MessageID.SET_GET_HOME_PARAMS, CTRL.SET_QUEUED if queued  else CTRL.SET, _pack((x, y, z, r), 'f'), serial)
 
 def get_home(serial) -> vector4:
     return _unpack('f', api.send_command(MessageID.SET_GET_HOME_PARAMS, CTRL.GET, b'', serial)['params'])
@@ -93,7 +92,7 @@ def set_end_effector_params(serial, x: float, y: float, z: float, queued: bool =
     res = api.send_command(
         MessageID.SET_GET_END_EFFECTOR_PARAMS,
         CTRL.SET_QUEUED if queued else CTRL.SET,
-        _pack((x, y, z)),
+        _pack((x, y, z), 'f'),
         serial
     )
     return _unpack('Q', res['params'])[0] if res != None else None
@@ -149,7 +148,7 @@ def set_jog_joint_params(serial, velocity: vector4, acceleration: vector4, queue
    res = api.send_command(
        MessageID.SET_GET_JOG_JOINT_PARAMS,
        CTRL.SET_QUEUED if queued else CTRL.SET,
-       _pack(velocity + acceleration),
+       _pack(velocity + acceleration, 'f'),
        serial
    )
    return _unpack('Q', res['params'])[0] if res != None else None
@@ -171,7 +170,7 @@ def set_jog_coordinate_params(serial, velocity: vector4, acceleration: vector4, 
    res = api.send_command(
        MessageID.SET_GET_JOG_COORDINATE_PARAMS,
        CTRL.SET_QUEUED if queued else CTRL.SET,
-       _pack(velocity + acceleration),
+       _pack(velocity + acceleration, 'f'),
        serial
    )
    return _unpack('Q', res['params'])[0] if res != None else None
@@ -193,7 +192,7 @@ def set_jog_common_params(serial, velocity_ratio: float, acceleration_ratio: flo
     res = api.send_command(
         MessageID.SET_GET_JOG_COMMON_PARAMS,
         CTRL.SET_QUEUED if queued else CTRL.SET,
-        _pack((velocity_ratio, acceleration_ratio)),
+        _pack((velocity_ratio, acceleration_ratio), 'f'),
         serial
     )
     return _unpack('Q', res['params'])[0] if res != None else None
@@ -211,7 +210,7 @@ def jog(serial, mode: JOG_MODE, cmd: JOG_CMD, queued: bool = True) -> int | None
     res = api.send_command(
         MessageID.JOG_CMD,
         CTRL.SET_QUEUED if queued else CTRL.SET,
-        _pack(struct.pack('B', mode) + struct.pack('B', cmd)),
+        struct.pack('B', mode) + struct.pack('B', cmd),
         serial
     )
     return _unpack('Q', res['params'])[0] if res != None else None
@@ -220,7 +219,7 @@ def set_ptp_joint_params(serial, velocity: vector4, acceleration: vector4, queue
    res = api.send_command(
        MessageID.SET_GET_PTP_JOINT_PARAMS,
        CTRL.SET_QUEUED if queued else CTRL.SET,
-       _pack(velocity + acceleration),
+       _pack(velocity + acceleration, 'f'),
        serial
    )
    return _unpack('Q', res['params'])[0] if res != None else None
@@ -244,7 +243,7 @@ def set_ptp_coordinate_params(serial, xyz_vel: float, r_vel: float, xyz_acc: flo
    res = api.send_command(
        MessageID.SET_GET_PTP_COORDINATE_PARAMS,
        CTRL.SET_QUEUED if queued else CTRL.SET,
-       _pack((xyz_vel, r_vel, xyz_acc, r_acc)),
+       _pack((xyz_vel, r_vel, xyz_acc, r_acc), 'f'),
        serial
    )
    return _unpack('Q', res['params'])[0] if res != None else None
@@ -266,7 +265,7 @@ def set_ptp_jump_params(serial, height: float, limit: float, queued: bool = True
     res = api.send_command(
         MessageID.SET_GET_PTP_JUMP_PARAMS,
         CTRL.SET_QUEUED if queued else CTRL.SET,
-        _pack((height, limit)),
+        _pack((height, limit), 'f'),
         serial
     )
     return _unpack('Q', res['params'])[0] if res != None else None
@@ -284,7 +283,7 @@ def set_ptp_common_params(serial, velocity_ratio: float, acceleration_ratio: flo
     res = api.send_command(
         MessageID.SET_GET_PTP_COMMON_PARAMS,
         CTRL.SET_QUEUED if queued else CTRL.SET,
-        _pack((velocity_ratio, acceleration_ratio)),
+        _pack((velocity_ratio, acceleration_ratio), 'f'),
         serial
     )
     return _unpack('Q', res['params'])[0] if res != None else None
