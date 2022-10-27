@@ -303,7 +303,7 @@ def move(serial, destination: vector4, mode: PTP_MODE = PTP_MODE.MOVJ_XYZ, queue
     res = api.send_command(
         MessageID.PTP_CMD,
         CTRL.SET_QUEUED if queued else CTRL.SET,
-        struct.pack('B', mode) + _pack(destination),
+        struct.pack('B', mode) + _pack(destination, 'f'),
         serial
     )
     return _unpack('Q', res['params'])[0] if res != None else None
@@ -374,7 +374,7 @@ def queued_cmd_start_download(serial: Serial, total_loop: int, line_per_loop: in
     api.send_command(
         MessageID.SET_QUEUED_CMD_START_DOWNLOAD,
         CTRL.SET,
-        _pack(('I', total_loop, line_per_loop)),
+        _pack((total_loop, line_per_loop), 'I'),
         serial
     )
 
