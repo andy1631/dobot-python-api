@@ -5,7 +5,7 @@ from serial.tools import list_ports
 #from multiprocessing import RLock
 import logging
 
-from .message_id import MessageID
+from .enums import MessageID
 
 from .message import *
 
