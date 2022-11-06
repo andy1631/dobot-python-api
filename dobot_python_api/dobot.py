@@ -3,13 +3,14 @@ from functools import reduce
 import struct
 from typing import Literal, Optional
 from serial import Serial
+import math
 
 import dobot_python_api.api as api
 
 from dobot_python_api.api.enums import *
 
 STEP_PER_CIRCLE = 360.0 / 1.8 * 10.0 * 16.0
-MM_PER_CIRCLE = 3.1415926535898 * 36.0
+MM_PER_CIRCLE = math.pi * 36.0
 
 vector4 = tuple[float, float, float, float]
 
@@ -88,7 +89,7 @@ def get_home(serial) -> vector4:
 
 def home(serial, queued: bool = True) -> int | None:
     res = api.send_command(MessageID.HOME_CMD, CTRL.SET_QUEUED if queued else CTRL.SET, b'\x00\x00\x00\x00', serial)
-    return _unpack('Q', res['params'])[0] if res != None else None
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def set_end_effector_params(serial, x: float, y: float, z: float, queued: bool = True) -> int | None:
     res = api.send_command(
@@ -97,7 +98,7 @@ def set_end_effector_params(serial, x: float, y: float, z: float, queued: bool =
         _pack((x, y, z), 'f'),
         serial
     )
-    return _unpack('Q', res['params'])[0] if res != None else None
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def get_end_effector_params(serial) -> tuple[float, float, float]:
     res = api.send_command(
@@ -114,7 +115,7 @@ def set_laser(serial, enable: bool, queued: bool = True) -> int | None:
                            b'\x01' + struct.pack('B', enable),
                            serial
                            )
-    return _unpack('Q', res['params'])[0] if res != None else None
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def get_suction_cup(serial) -> tuple[bool, bool]:
     res = api.send_command(MessageID.SET_GET_END_EFFECTOR_SUCTION_CUP, CTRL.GET, b'', serial)
@@ -126,7 +127,7 @@ def set_suction_cup(serial, enable: bool, queued: bool = True) -> int | None:
                            b'\x01' + struct.pack('B', enable),
                            serial
                            )
-    return _unpack('Q', res['params'])[0] if res != None else None
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def get_laser(serial) -> tuple[bool, bool]:
     res = api.send_command(MessageID.SET_GET_END_EFFECTOR_LASER, CTRL.GET, b'', serial)
@@ -140,7 +141,7 @@ def set_gripper(serial, enable: bool, close: bool, queued: bool = True) -> int |
                            _pack((enable, close), 'B'),
                            serial
                            )
-    return _unpack('Q', res['params'])[0] if res != None else None
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def get_gripper(serial) -> tuple[bool, bool]:
     res = api.send_command(MessageID.SET_GET_END_EFFECTOR_GRIPPER, CTRL.GET, b'', serial)
@@ -153,7 +154,7 @@ def set_jog_joint_params(serial, velocity: vector4, acceleration: vector4, queue
        _pack(velocity + acceleration, 'f'),
        serial
    )
-   return _unpack('Q', res['params'])[0] if res != None else None
+   return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def get_jog_joint_params(serial) -> dict[str, vector4]:
     res = api.send_command(
@@ -175,7 +176,7 @@ def set_jog_coordinate_params(serial, velocity: vector4, acceleration: vector4, 
        _pack(velocity + acceleration, 'f'),
        serial
    )
-   return _unpack('Q', res['params'])[0] if res != None else None
+   return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def get_jog_coordinate_params(serial) -> dict[str, vector4]:
     res = api.send_command(
@@ -197,7 +198,7 @@ def set_jog_common_params(serial, velocity_ratio: float, acceleration_ratio: flo
         _pack((velocity_ratio, acceleration_ratio), 'f'),
         serial
     )
-    return _unpack('Q', res['params'])[0] if res != None else None
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def get_jog_common_params(serial) -> tuple[float, float]:
     res = api.send_command(
@@ -215,7 +216,7 @@ def jog(serial, mode: JOG_MODE, cmd: JOG_CMD, queued: bool = True) -> int | None
         struct.pack('B', mode) + struct.pack('B', cmd),
         serial
     )
-    return _unpack('Q', res['params'])[0] if res != None else None
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def set_ptp_joint_params(serial, velocity: vector4, acceleration: vector4, queued: bool = True) -> int | None:
    res = api.send_command(
@@ -224,7 +225,7 @@ def set_ptp_joint_params(serial, velocity: vector4, acceleration: vector4, queue
        _pack(velocity + acceleration, 'f'),
        serial
    )
-   return _unpack('Q', res['params'])[0] if res != None else None
+   return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 
 
@@ -248,7 +249,7 @@ def set_ptp_coordinate_params(serial, xyz_vel: float, r_vel: float, xyz_acc: flo
        _pack((xyz_vel, r_vel, xyz_acc, r_acc), 'f'),
        serial
    )
-   return _unpack('Q', res['params'])[0] if res != None else None
+   return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def get_ptp_coordinate_params(serial) -> dict[str, tuple[float, float]]:
     res = api.send_command(
@@ -270,7 +271,7 @@ def set_ptp_jump_params(serial, height: float, limit: float, queued: bool = True
         _pack((height, limit), 'f'),
         serial
     )
-    return _unpack('Q', res['params'])[0] if res != None else None
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def get_ptp_jump_params(serial) -> tuple[float, float]:
     res = api.send_command(
@@ -288,7 +289,7 @@ def set_ptp_common_params(serial, velocity_ratio: float, acceleration_ratio: flo
         _pack((velocity_ratio, acceleration_ratio), 'f'),
         serial
     )
-    return _unpack('Q', res['params'])[0] if res != None else None
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def get_ptp_common_params(serial) -> tuple[float, float]:
     res = api.send_command(
@@ -306,7 +307,16 @@ def move(serial, destination: vector4, mode: PTP_MODE = PTP_MODE.MOVJ_XYZ, queue
         struct.pack('B', mode) + _pack(destination, 'f'),
         serial
     )
-    return _unpack('Q', res['params'])[0] if res != None else None
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
+
+def wait(serial: Serial, timeout: int, queued: bool = True) -> int | None :
+    res = api.send_command(
+        MessageID.SET_WAIT_CMD,
+        CTRL.SET_QUEUED if queued else CTRL.SET,
+        struct.pack('I', timeout),
+        serial
+    )
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def _set_emotor(serial, speed: float, interface: Literal[0, 1] = 0, enabled: bool = True, queued: bool = True) -> int | None:
     res = api.send_command(
@@ -315,7 +325,7 @@ def _set_emotor(serial, speed: float, interface: Literal[0, 1] = 0, enabled: boo
        struct.pack('B', interface) + struct.pack('B', enabled) + struct.pack('i', int(speed)),
        serial
     )
-    return _unpack('Q', res['params'])[0] if res != None else None
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def start_belt(serial: Serial, speed: float, interface: Literal[0, 1] = 0, queued: bool = True) -> int | None:
     #speed claculation? TODO
@@ -332,7 +342,7 @@ def set_color_sensor(serial: Serial, enable: bool, port: SensorPort, version: Li
         _pack((enable, port, version), 'B'),
         serial
     )
-    return _unpack('Q', res['params'])[0] if res != None else None
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def get_color(serial: Serial):# -> tuple[int, int, int]:
     res = api.send_command(
@@ -350,7 +360,7 @@ def set_ir_switch(serial: Serial, enable: bool, port: SensorPort, version: Liter
         _pack((enable, port, version), 'B'),
         serial
     )
-    return _unpack('Q', res['params'])[0] if res != None else None
+    return _unpack('Q', res['params'])[0] if res['params'] != b'' else None
 
 def get_ir(serial: Serial, port: SensorPort, version: Literal[0, 1] = 1) -> bool:
     res = api.send_command(

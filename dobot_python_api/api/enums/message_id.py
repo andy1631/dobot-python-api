@@ -49,6 +49,9 @@ class MessageID(IntEnum):
     ARC_PARAMS = 100
     ARC_CMD = 101
 
+    #WAIT
+    SET_WAIT_CMD = 110
+
     #EIO
     EIO = 131
 
