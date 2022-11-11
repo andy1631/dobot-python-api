@@ -33,10 +33,11 @@ def _pack(params: tuple | list | bytes, f: Optional[str] = None) -> bytes: #move
     if f != None:
         t = f
     else:
-        if type(params[0]) == builtins.int:
-            t = 'i'
-        else if type(params[0]) == builtins.float:
-            t = 'f'
+        match type(params[0]):
+            case builtins.int:
+                t = 'i'
+            case builtins.float:
+                t = 'f'
     return reduce(lambda x, y: x + struct.pack(t, y), params, b'')
 
 def _unpack(t: str, params: bytes): #move to message?
